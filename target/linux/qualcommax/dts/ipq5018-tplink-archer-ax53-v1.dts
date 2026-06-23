@@ -1,0 +1,545 @@
+// SPDX-License-Identifier: (GPL-2.0+)
+
+/dts-v1/;
+
+#include "ipq5018.dtsi"
+#include "ipq5018-ess.dtsi"
+#include "ipq5018-qcn6122.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+/ {
+	model = "Tplink Archer AX53 v1";
+	compatible = "tplink,archer-ax53-v1", "qcom,ipq5018", "qcom,ipq5018-mp03.3";
+
+	interrupt-parent = <&intc>;
+
+	aliases {
+		serial0 = &blsp1_uart1;
+		//ethernet0 = &dp1;
+		ethernet1 = &dp2;
+		label-mac-device = &dp2;
+	};
+
+	chosen {
+		bootargs-append = " root=/dev/ubiblock0_1 swiotlb=1 coherent_pool=2M";
+		stdout-path = "serial0:115200n8";
+	};
+
+	reserved-memory {
+		// Not sure why but without this, WiFi will crash
+		tz: tz@4ac00000 {
+			no-map;
+			reg = <0x00 0x4ac00000 0x00 0x400000>;
+		};
+
+        tz_appps@4a400000 {
+			no-map;
+			reg = <0x0 0x4a400000 0x0 0x400000>;
+		};
+
+		nss@40000000 {
+			no-map;
+			reg = <0x00 0x40000000 0x00 0x1000000>;
+		};
+
+        dma_pool1@50700000 {
+			compatible = "shared-dma-pool";
+			no-map;
+			reg = <0x00 0x50700000 0x00 0x1000000>;
+		};
+	};
+
+	thermal-zones {
+		status = "ok";
+	};
+
+realtek@29{
+			compatible = "realtek,rtl8367s";
+			mii-bus = <&mdio1>;
+			realtek,extif1 = <0 0 10 1 0 0 1 1 4>;
+			switch = <&tlmm 33 0>;
+			cpu-port = <6>;
+			phy-addr = <29>;
+            status = "ok";
+		};
+};
+
+&tlmm {
+	blsp_uart0_pins: blsp_uart0_pins {
+		pins =
+			"gpio28", /* RX */
+			"gpio29"; /* TX */
+		function = "blsp0_uart1";
+		drive-strength = <8>;
+		bias-disable;
+	};
+
+	i2c_pins: i2c_pins {
+		i2c_scl {
+			pins = "gpio25";
+			function = "blsp2_i2c1";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		i2c_sda {
+			pins = "gpio26";
+			function = "blsp2_i2c1";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	blsp0_spi_pins: blsp0_spi_pins {
+		linux,phandle = <0x05>;
+		phandle = <0x05>;
+
+		mux {
+			pins = "gpio10", "gpio11", "gpio12", "gpio13";
+			function = "blsp0_spi";
+			drive-strength = <2>;
+			bias-disable;
+		};
+	};
+
+	qpic_pins: qpic-state {
+		clock-pins {
+			pins = "gpio9";
+			function = "qspi_clk";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		cs-pins {
+			pins = "gpio8";
+			function = "qspi_cs";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data-pins {
+			pins = "gpio4", "gpio5", "gpio6", "gpio7";
+			function = "qspi_data";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	mdio1_pins: mdio_pinmux {
+		mux_0 {
+			pins = "gpio36";
+			function = "mdc";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		mux_1 {
+			pins = "gpio37";
+			function = "mdio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	phy_led_pins: phy_led_pins {
+		gephy_led_pin {
+			pins = "gpio46";
+			function = "led0";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+	};
+
+	button_pins: button_pins {
+		wps_button {
+			pins = "gpio38";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+	audio_pins: audio_pinmux {
+		mux_1 {
+			pins = "gpio24";
+			function = "audio_rxbclk";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		mux_2 {
+			pins = "gpio25";
+			function = "audio_rxfsync";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		mux_3 {
+			pins = "gpio26";
+			function = "audio_rxd";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		mux_4 {
+			pins = "gpio27";
+			function = "audio_txmclk";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		mux_5 {
+			pins = "gpio28";
+			function = "audio_txbclk";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		mux_6 {
+			pins = "gpio29";
+			function = "audio_txfsync";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		mux_7 {
+			pins = "gpio30";
+			function = "audio_txd";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+	};
+};
+
+&blsp1_uart1 {
+	pinctrl-0 = <&blsp_uart0_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&qpic_bam {
+	status = "okay";
+};
+
+&qpic_nand {
+	pinctrl-0 = <&qpic_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	nand@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+
+		nand-ecc-engine = <&qpic_nand>;
+		nand-bus-width = <8>;
+
+		partitions: partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "0:SBL1";
+				reg = <0x00 0x80000>;
+				read-only;
+			};
+
+			partition@80000 {
+				label = "0:MIBIB";
+				reg = <0x80000 0x80000>;
+				read-only;
+			};
+
+			partition@100000 {
+				label = "0:BOOTCONFIG";
+				reg = <0x100000 0x40000>;
+				read-only;
+			};
+
+			partition@140000 {
+				label = "0:BOOTCONFIG1";
+				reg = <0x140000 0x40000>;
+				read-only;
+			};
+
+			partition@180000 {
+				label = "0:QSEE";
+				reg = <0x180000 0x100000>;
+				read-only;
+			};
+
+			partition@280000 {
+				label = "0:DEVCFG";
+				reg = <0x280000 0x40000>;
+				read-only;
+			};
+
+			partition@2c0000 {
+				label = "0:CDT";
+				reg = <0x2c0000 0x40000>;
+			};
+
+			partition@300000 {
+				label = "0:APPSBLENV";
+				reg = <0x300000 0x80000>;
+				read-only;
+			};
+
+			partition@380000 {
+					label = "0:APPSBL";
+					reg = <0x380000 0x140000>;
+					read-only;
+			};
+
+			partition@4c0000 {
+				label = "0:ART";
+				reg = <0x4c0000 0x100000>;
+				read-only;
+
+				nvmem-layout {
+					compatible = "fixed-layout";
+					#address-cells = <1>;
+					#size-cells = <1>;
+
+					macaddr_dp2: macaddr@0 {
+						reg = <0x0 0x6>;
+					};
+				};
+			};
+
+			partition@5c0000 {
+				label = "0:TRAINING";
+				reg = <0x5c0000 0x80000>;
+				read-only;
+			};
+
+			partition@640000 {
+				label = "rootfs";
+				reg = <0x640000 0x2a00000>;
+			};
+
+			partition@3040000 {
+				label = "rootfs_1";
+				reg = <0x3040000 0x2a00000>;
+			};
+
+			partition@5a40000 {
+				label = "tp_data";
+				reg = <0x5a40000 0x840000>;
+			};
+
+			partition@6280000 {
+				label = "radio";
+				reg = <0x6280000 0x440000>;
+				read-only;
+			};
+
+			partition@66c0000 {
+				label = "data";
+				reg = <0x66c0000 0x80000>;
+			};
+		};
+	};
+};
+
+&soc {
+	leds {
+		compatible = "gpio-leds";
+
+		led_power {
+			gpios = <&tlmm 18 GPIO_ACTIVE_HIGH>;
+			label = "green:power";
+			default-state = "on";
+		};
+
+		led_orange_wan {
+			gpios = <&tlmm 22 GPIO_ACTIVE_HIGH>;
+			label = "orange:wan";
+		};
+
+		led_green_wan {
+			gpios = <&tlmm 11 GPIO_ACTIVE_HIGH>;
+			label = "green:wan";
+		};
+
+		led_lan {
+			gpios = <&tlmm 10 GPIO_ACTIVE_HIGH>;
+			label = "green:lan";
+		};
+
+		led_wlan_2g {
+			gpios = <&tlmm 13 GPIO_ACTIVE_HIGH>;
+			label = "green:wlan2.4";
+		};
+
+		led_usb {
+			gpios = <&tlmm 38 GPIO_ACTIVE_HIGH>;
+			label = "green:usb";
+		};
+	};
+
+	gpio_keys {
+		compatible = "gpio-keys";
+		pinctrl-0 = <&button_pins>;
+		pinctrl-names = "default";
+
+		button@1 {
+			label = "wps";
+			linux,code = <KEY_WPS_BUTTON>;
+			gpios = <&tlmm 38 GPIO_ACTIVE_LOW>;
+			linux,input-type = <1>;
+			debounce-interval = <60>;
+		};
+	};
+
+	qcom,test@0 {
+			status = "ok";
+		};
+};
+
+		// Dummy switch, to describe how the external ports connects to the MAC
+		// For example, some chips have PSGMII ports which combine 5 MAC into
+		// 1 external port.
+		// For IPQ50xx, this is used to choose SGMII or SGMII-plus
+&switch {
+	status = "okay";
+
+	switch_mac_mode = <MAC_MODE_SGMII_CHANNEL0>;
+
+	qcom,port_phyinfo {
+		// MAC0 -> GE Phy -> QCA8337 Phy4
+		port@1 {
+			port_id = <1>;
+			mdiobus = <&mdio0>;
+			phy_address = <7>;
+			// status = "disabled";
+		};
+
+		// MAC1 ---SGMII---> QCA8337 SerDes
+		port@2 {
+			port_id = <2>;
+			forced-speed = <2500>;
+			forced-duplex = <1>;
+		};
+	};
+};
+
+// MAC0 -> GE Phy
+//&dp1 {
+//status = "okay";
+//};
+
+
+// MAC1 ---SGMII---> SerDes
+&dp2 {
+	status = "okay";
+	phy-mode = "sgmii";
+	nvmem-cells = <&macaddr_dp2>;
+	nvmem-cell-names = "mac-address";
+
+	fixed-link {
+		speed = <1000>;
+		full-duplex;
+	};
+};
+
+// IPQ5018 GE Phy -> Phy4
+&ge_phy {
+	status = "okay";
+};
+
+&mdio0 {
+	status = "ok";
+};
+
+&mdio1 {
+	status = "okay";
+	pinctrl-0 = <&mdio1_pins>;
+	pinctrl-names = "default";
+	reset-gpios = <&tlmm 33 GPIO_ACTIVE_LOW>;
+
+		ethernet-phy@0 {
+				reg = <0x1d>;
+			};
+};
+
+&sleep_clk {
+	clock-frequency = <32000>;
+};
+
+&xo_board_clk {
+	clock-div = <4>;
+	clock-mult = <1>;
+};
+
+&crypto {
+	status = "okay";
+};
+
+&cryptobam {
+	status = "okay";
+};
+
+&pcie0_phy {
+	status = "okay";
+};
+
+&pcie1 {
+	status = "disabled";
+	perst-gpio = <&tlmm 18 1>;
+};
+
+&pcie0 {
+	status = "okay";
+
+	perst-gpios = <&tlmm 15 GPIO_ACTIVE_LOW>;
+};
+
+&prng {
+	status = "okay";
+};
+
+&qfprom {
+	status = "okay";
+};
+
+&usb {
+	qcom,select-utmi-as-pipe-clk;
+	status = "disabled";
+};
+
+&usb_dwc {
+	status = "disabled";
+};
+
+&usbphy0 {
+	status = "disabled";
+};
+
+&q6v5_wcss {
+	qcom,bootargs_smem = <507>;
+	boot-args = <0x01 0x04 0x02 0x0f 0x00 0x00>;
+};
+
+&wifi {
+	status = "disabled";
+
+	qcom,rproc = <&q6_wcss_pd1>;
+	qcom,ath11k-calibration-variant = "TP-LINK-AX53-V1";
+	qcom,ath11k-fw-memory-mode = <1>;
+	qcom,bdf-addr = <0x4c400000>;
+
+};
+
+&wifi1 {
+	status = "disabled";
+
+	qcom,rproc = <&q6_wcss_pd2>;
+	qcom,ath11k-calibration-variant = "TP-LINK-AX53-V1";
+	qcom,ath11k-fw-memory-mode = <1>;
+	qcom,bdf-addr = <0x4d200000>;
+	qcom,m3-dump-addr = <0x4df00000>;
+
+};

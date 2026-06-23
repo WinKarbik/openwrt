@@ -40,6 +40,13 @@ case "$FIRMWARE" in
 		ath11k_remove_regdomain
 		ath11k_set_macflag
 		;;
+	tplink,archer-ax53-v1)
+		caldata_extract "0:art" 0x1000 0x20000
+		label_mac=$(get_mac_label_dt)
+		ath11k_patch_mac $(macaddr_add $label_mac 1) 0
+		ath11k_remove_regdomain
+		ath11k_set_macflag
+		;;
 	linksys,mx6200)
 		caldata_extract "0:art" 0x1000 0x20000
 		label_mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
@@ -87,6 +94,13 @@ case "$FIRMWARE" in
 	linksys,mx2000)
 		caldata_extract "0:art" 0x26800 0x20000
 		label_mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
+		ath11k_patch_mac $(macaddr_add $label_mac 2) 0
+		ath11k_remove_regdomain
+		ath11k_set_macflag
+		;;
+	tplink,archer-ax53-v1)
+		caldata_extract "0:art" 0x26800 0x20000
+		label_mac=$(get_mac_label_dt)
 		ath11k_patch_mac $(macaddr_add $label_mac 2) 0
 		ath11k_remove_regdomain
 		ath11k_set_macflag

@@ -201,6 +201,26 @@ define Device/linksys_spnmx56
 endef
 TARGET_DEVICES += linksys_spnmx56
 
+define Device/tplink-archer-ax53-v1
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := TP-LINK
+	DEVICE_MODEL := Archer AX53 v1
+	DEVICE_DTS_CONFIG := config@mp03.3
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := ipq5018
+	KERNEL_SIZE := 8192k
+	NAND_SIZE := 128m
+	IMAGE_SIZE := 83968k
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
+        ath11k-firmware-ipq5018-qcn6122 \
+        kmod-switch-rtl8366-smi \
+		ipq-wifi-tplink-archer-ax53-v1 \
+        kmod-switch-rtl8367s
+endef
+TARGET_DEVICES += tplink-archer-ax53-v1
+
 define Device/xiaomi_ipq50xx_ax_base
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
